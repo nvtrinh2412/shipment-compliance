@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { DbService } from '../db/db.service';
 import { AuditAction } from '@prisma/client';
 
 @Injectable()
 export class AuditService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private dbService: DbService) {}
 
   async logAction(
     shipmentId: string,
@@ -12,7 +12,7 @@ export class AuditService {
     actor: string,
     details: any,
   ) {
-    return this.prisma.auditLog.create({
+    return this.dbService.auditLog.create({
       data: {
         shipmentId,
         action,

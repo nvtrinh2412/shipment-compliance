@@ -1,3 +1,4 @@
+import { DbService } from '../../db/db.service';
 import { Prisma, Severity } from '@prisma/client';
 
 export type ShipmentWithRelations = Prisma.ShipmentGetPayload<{
@@ -14,5 +15,5 @@ export interface ValidationIssueInput {
 
 export interface ValidationRule {
   name: string;
-  validate(shipment: ShipmentWithRelations): Promise<ValidationIssueInput[] | null>;
+  validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null>;
 }
