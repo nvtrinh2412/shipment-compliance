@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ingestShipment } from '../api/apiClient';
 import { useNavigate } from 'react-router-dom';
+import { Show } from '../components/Show';
 
 const DEFAULT_JSON = `{
   "shipment_reference": "OCR-99120",
@@ -59,11 +60,11 @@ export default function IngestData() {
         <p className="text-slate-400 mt-1">Paste raw JSON data extracted from a document to trigger the compliance rules engine.</p>
       </div>
 
-      {errorStr && (
+      <Show when={!!errorStr}>
         <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl">
           {errorStr}
         </div>
-      )}
+      </Show>
 
       <form onSubmit={handleSubmit} className="glass-panel p-6 rounded-2xl space-y-6">
         <div>
@@ -81,7 +82,9 @@ export default function IngestData() {
             disabled={mutation.isPending}
             className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/25 flex items-center gap-2"
           >
-            {mutation.isPending ? 'Processing Engine...' : 'Run Validation Engine'}
+            <Show when={mutation.isPending} fallback="Run Validation Engine">
+              Processing Engine...
+            </Show>
           </button>
         </div>
       </form>
