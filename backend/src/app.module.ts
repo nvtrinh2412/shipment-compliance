@@ -4,10 +4,10 @@ import { AppService } from './app.service';
 import { ShipmentsModule } from './shipments/shipments.module';
 import { AuditModule } from './audit/audit.module';
 import { ValidationModule } from './validation/validation.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { DbModule } from './db/db.module';
 
 @Module({
-  imports: [ShipmentsModule, AuditModule, ValidationModule, PrismaModule],
+  imports: [ShipmentsModule, AuditModule, ValidationModule, DbModule],
   controllers: [AppController],
   providers: [AppService],
 })
