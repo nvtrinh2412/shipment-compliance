@@ -23,4 +23,10 @@ export class ShipmentsController {
   async getReadiness(@Param('id') id: string) {
     return this.shipmentsService.getReadinessReport(id);
   }
+
+  @Get()
+  @ApiOperation({ summary: 'List recent shipments' })
+  async list() {
+    return this.shipmentsService.listShipments();
+  }
 }

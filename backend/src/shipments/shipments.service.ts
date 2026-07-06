@@ -70,4 +70,12 @@ export class ShipmentsService {
 
     return shipment;
   }
+
+  async listShipments() {
+    return this.dbService.shipment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: { issues: true }
+    });
+  }
 }
