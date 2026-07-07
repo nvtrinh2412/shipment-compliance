@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Get, Param, UsePipes, Patch, UseInterceptors } from '@nestjs/common';
 import { ShipmentsService } from './shipments.service';
 import { IngestShipmentDto } from './dto/ingest-shipment.dto';
+import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuditLog } from '../audit/decorators/audit-log.decorator';
@@ -13,21 +14,50 @@ import { AuditAction } from '@prisma/client';
 export class ShipmentsController {
   constructor(private readonly shipmentsService: ShipmentsService) {}
 
-  @Post('ingest')
-  @AuditLog(AuditAction.DOCUMENT_INGESTED)
-  @ApiOperation({ summary: 'Ingest semi-structured OCR shipment data' })
-  @ApiResponse({ status: 201, description: 'Shipment ingested and Readiness Report generated.' })
+  @Post()
+  @AuditLog(AuditAction.SHIPMENT_CREATED)
+  @ApiOperation({ summary: 'Create a new draft shipment record' })
   @UsePipes(new ZodValidationPipe())
-  async ingest(@Body() payload: IngestShipmentDto) {
-    return this.shipmentsService.ingestDocument(payload);
+  async create(@Body() payload: CreateShipmentDto) {
+    return this.shipmentsService.createShipment(payload);
   }
 
-  @Get(':id/readiness')
+  @Get(':id')
+  @ApiOperation({ summary: 'Get shipment details by ID' })
+  async get(@Param('id') id: string) {
+    return this.shipmentsService.getShipment(id);
+  }
+
+  @Post(':id/documents')
+  @AuditLog(AuditAction.DOCUMENT_INGESTED)
+  @ApiOperation({ summary: 'Ingest mock document OCR data for a shipment' })
+  async ingestMockDocument(@Param('id') id: string, @Body() payload: any) {
+    return this.shipmentsService.ingestMockDocument(id, payload);
+  }
+
+  @Post(':id/validate')
+  @ApiOperation({ summary: 'Run the validation engine on a shipment' })
+  async validate(@Param('id') id: string) {
+    return this.shipmentsService.runValidation(id);
+  }
+
+  @Get(':id/issues')
+  @ApiOperation({ summary: 'Get active validation issues for a shipment' })
+  async getIssues(@Param('id') id: string) {
+    return this.shipmentsService.getIssues(id);
+  }
+
+  @Get(':id/readiness-report')
   @AuditLog(AuditAction.READINESS_REPORT_GENERATED)
-  @ApiOperation({ summary: 'Get Readiness Report for a shipment' })
-  @ApiResponse({ status: 200, description: 'Returns the shipment details and validation issues.' })
-  async getReadiness(@Param('id') id: string) {
+  @ApiOperation({ summary: 'Get customs compliance readiness report' })
+  async getReadinessReport(@Param('id') id: string) {
     return this.shipmentsService.getReadinessReport(id);
+  }
+
+  @Get(':id/audit-log')
+  @ApiOperation({ summary: 'Get the audit history timeline for a shipment' })
+  async getAuditLog(@Param('id') id: string) {
+    return this.shipmentsService.getAuditLog(id);
   }
 
   @Get()

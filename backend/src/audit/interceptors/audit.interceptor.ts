@@ -40,8 +40,11 @@ export class AuditInterceptor implements NestInterceptor {
 
   private async processAuditLog(action: AuditAction, request: any, result: any): Promise<void> {
     switch (action) {
+      case AuditAction.SHIPMENT_CREATED:
+        await this.handleShipmentCreated(request, result);
+        break;
       case AuditAction.DOCUMENT_INGESTED:
-        await this.handleDocumentIngested(request, result);
+        await this.handleDocumentIngested(request);
         break;
       case AuditAction.FIELD_UPDATED:
         await this.handleFieldUpdated(request);
@@ -54,17 +57,22 @@ export class AuditInterceptor implements NestInterceptor {
     }
   }
 
-  private async handleDocumentIngested(request: any, result: any): Promise<void> {
-    const shipmentId = result?.shipmentId;
+  private async handleShipmentCreated(request: any, result: any): Promise<void> {
+    const shipmentId = result?.id;
     if (!shipmentId) return;
 
-    // Log both shipment created and document data ingested events
     await this.auditService.logAction(
       shipmentId,
       AuditAction.SHIPMENT_CREATED,
       AuditActor.SYSTEM,
       { reference: result.reference }
     );
+  }
+
+  private async handleDocumentIngested(request: any): Promise<void> {
+    const shipmentId = request.params.id;
+    if (!shipmentId) return;
+
     await this.auditService.logAction(
       shipmentId,
       AuditAction.DOCUMENT_INGESTED,

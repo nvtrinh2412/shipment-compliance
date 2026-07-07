@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileUp } from 'lucide-react';
+import { LayoutDashboard, FileUp, Terminal } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function Layout() {
@@ -17,6 +17,7 @@ export default function Layout() {
         <nav className="flex-1 px-4 space-y-1.5 mt-6">
           <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           <NavItem to="/ingest" icon={<FileUp size={20} />} label="Ingest Data" />
+          <NavItem to="/playground" icon={<Terminal size={20} />} label="API Playground" />
         </nav>
       </aside>
 

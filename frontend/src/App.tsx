@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import IngestData from './pages/IngestData';
 import ShipmentDetails from './pages/ShipmentDetails';
+import ApiPlayground from './pages/ApiPlayground';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="ingest" element={<IngestData />} />
           <Route path="shipments/:id" element={<ShipmentDetails />} />
+          <Route path="playground" element={<ApiPlayground />} />
         </Route>
       </Routes>
     </BrowserRouter>

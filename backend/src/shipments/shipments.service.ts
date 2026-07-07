@@ -3,6 +3,7 @@ import { DbService } from '../db/db.service';
 import { ValidationService } from '../validation/validation.service';
 import { DocumentMapper } from './document-mapper';
 import { IngestShipmentDto } from './dto/ingest-shipment.dto';
+import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { ShipmentStatus, Severity } from '@prisma/client';
 
 @Injectable()
@@ -12,15 +13,106 @@ export class ShipmentsService {
     private readonly validationService: ValidationService,
   ) {}
 
-  async ingestDocument(payload: IngestShipmentDto) {
-    // 1. Map semi-structured document to standard schema
+  async createShipment(dto: CreateShipmentDto) {
+    const shipment = await this.dbService.shipment.create({
+      data: {
+        reference: dto.reference,
+        exporter: '',
+        importer: '',
+        commercialInvoiceNumber: '',
+        goodsDescription: '',
+        hsCode: '',
+        containerNumber: '',
+        billOfLadingNumber: '',
+        packagingType: '',
+        countryCode: 'US',
+        currencyCode: 'USD',
+        invoiceValue: 0,
+        grossWeightKg: 0,
+        netWeightKg: 0,
+        numberOfPackages: 0,
+        arrivalDate: new Date(),
+        status: ShipmentStatus.DRAFT,
+      }
+    });
+    return shipment;
+  }
+
+  async getShipment(id: string) {
+    const shipment = await this.dbService.shipment.findUnique({
+      where: { id },
+      include: { country: true, currency: true }
+    });
+    if (!shipment) throw new NotFoundException('Shipment not found');
+    return shipment;
+  }
+
+  async ingestMockDocument(id: string, payload: any) {
+    const shipment = await this.dbService.shipment.findUnique({ where: { id } });
+    if (!shipment) throw new NotFoundException('Shipment not found');
+
     const mappedData = DocumentMapper.mapToShipment(payload);
     
-    // Extract reference from DTO explicitly
+    // Default mapped fields if missing to prevent SQL failures on non-nullable columns.
+    if (!mappedData.exporter) mappedData.exporter = '';
+    if (!mappedData.importer) mappedData.importer = '';
+    if (!mappedData.commercialInvoiceNumber) mappedData.commercialInvoiceNumber = '';
+    if (!mappedData.goodsDescription) mappedData.goodsDescription = '';
+    if (!mappedData.hsCode) mappedData.hsCode = '';
+    if (!mappedData.containerNumber) mappedData.containerNumber = '';
+    if (!mappedData.billOfLadingNumber) mappedData.billOfLadingNumber = '';
+    if (!mappedData.packagingType) mappedData.packagingType = '';
+    if (!mappedData.countryCode) mappedData.countryCode = 'US';
+    if (!mappedData.currencyCode) mappedData.currencyCode = 'USD';
+    if (!mappedData.invoiceValue) mappedData.invoiceValue = 0;
+    if (!mappedData.grossWeightKg) mappedData.grossWeightKg = 0;
+    if (!mappedData.netWeightKg) mappedData.netWeightKg = 0;
+    if (mappedData.numberOfPackages === undefined || mappedData.numberOfPackages === null) mappedData.numberOfPackages = 0;
+    if (!mappedData.arrivalDate) mappedData.arrivalDate = new Date();
+
+    const updated = await this.dbService.shipment.update({
+      where: { id },
+      data: {
+        ...(mappedData as any),
+        status: ShipmentStatus.PENDING_REVIEW,
+      }
+    });
+
+    return updated;
+  }
+
+  async runValidation(id: string) {
+    const shipment = await this.dbService.shipment.findUnique({ where: { id } });
+    if (!shipment) throw new NotFoundException('Shipment not found');
+
+    const issues = await this.validationService.validateShipment(id);
+    return issues;
+  }
+
+  async getIssues(id: string) {
+    const shipment = await this.dbService.shipment.findUnique({ where: { id } });
+    if (!shipment) throw new NotFoundException('Shipment not found');
+
+    return this.dbService.validationIssue.findMany({
+      where: { shipmentId: id }
+    });
+  }
+
+  async getAuditLog(id: string) {
+    const shipment = await this.dbService.shipment.findUnique({ where: { id } });
+    if (!shipment) throw new NotFoundException('Shipment not found');
+
+    return this.dbService.auditLog.findMany({
+      where: { shipmentId: id },
+      orderBy: { timestamp: 'desc' }
+    });
+  }
+
+  // Deprecated helper. Keeps legacy controller endpoints happy.
+  async ingestDocument(payload: IngestShipmentDto) {
+    const mappedData = DocumentMapper.mapToShipment(payload);
     mappedData.reference = payload.shipment_reference || `REF-${Date.now()}`;
     
-    // Fill in placeholders for missing string fields so DB insert doesn't fail on NOT NULL constraints.
-    // The validation rules will catch these as 'MISSING_REQUIRED_FIELD' later.
     if (!mappedData.exporter) mappedData.exporter = '';
     if (!mappedData.importer) mappedData.importer = '';
     if (!mappedData.commercialInvoiceNumber) mappedData.commercialInvoiceNumber = '';
@@ -37,7 +129,6 @@ export class ShipmentsService {
     if (mappedData.numberOfPackages === undefined || mappedData.numberOfPackages === null) mappedData.numberOfPackages = 0;
     if (!mappedData.arrivalDate) mappedData.arrivalDate = new Date();
     
-    // 2. Insert mapped data into the database
     const shipment = await this.dbService.shipment.create({
       data: {
         ...(mappedData as any),
@@ -45,10 +136,7 @@ export class ShipmentsService {
       }
     });
 
-    // 3. Run validation rules on the newly created shipment
     const issues = await this.validationService.validateShipment(shipment.id);
-
-    // 4. Fetch updated status
     const updated = await this.dbService.shipment.findUnique({ where: { id: shipment.id }});
 
     return {
@@ -110,9 +198,7 @@ export class ShipmentsService {
       data,
     });
 
-    // Re-run validation rules on update
     await this.validationService.validateShipment(id);
-
     return this.getReadinessReport(id);
   }
 }
