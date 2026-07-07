@@ -123,54 +123,54 @@ export default function IngestData() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-100">Simulate OCR Ingestion</h2>
-        <p className="text-slate-400 mt-1">Paste raw JSON data extracted from a document to trigger the compliance rules engine.</p>
+        <h2 className="text-2xl font-bold text-slate-900">Simulate OCR Ingestion</h2>
+        <p className="text-slate-500 text-sm mt-1">Paste raw JSON data extracted from a document to trigger the compliance rules engine.</p>
       </div>
 
       {/* Preset Quick Select List */}
-      <div className="glass-panel p-5 rounded-2xl space-y-3">
-        <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-          <FileCode size={16} className="text-blue-400" />
+      <div className="glass-panel p-5 rounded-2xl space-y-3 border border-slate-100">
+        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+          <FileCode size={16} className="text-primary" />
           Quick Load Preset Templates
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <button
             onClick={() => loadPreset(PRESETS.COMPLIANT.json)}
-            className="text-left p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors"
+            className="text-left p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50/70 transition-all duration-200 cursor-pointer"
           >
-            <div className="text-xs font-semibold text-emerald-400">{PRESETS.COMPLIANT.name}</div>
-            <div className="text-[10px] text-slate-400 mt-1">{PRESETS.COMPLIANT.description}</div>
+            <div className="text-xs font-bold text-emerald-800">{PRESETS.COMPLIANT.name}</div>
+            <div className="text-[10px] text-slate-500 mt-1">{PRESETS.COMPLIANT.description}</div>
           </button>
           <button
             onClick={() => loadPreset(PRESETS.MULTIPLE_ISSUES.json)}
-            className="text-left p-3 rounded-xl border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 transition-colors"
+            className="text-left p-3.5 rounded-xl border border-rose-100 bg-rose-50/30 hover:bg-rose-50/70 transition-all duration-200 cursor-pointer"
           >
-            <div className="text-xs font-semibold text-rose-400">{PRESETS.MULTIPLE_ISSUES.name}</div>
-            <div className="text-[10px] text-slate-400 mt-1">{PRESETS.MULTIPLE_ISSUES.description}</div>
+            <div className="text-xs font-bold text-rose-800">{PRESETS.MULTIPLE_ISSUES.name}</div>
+            <div className="text-[10px] text-slate-500 mt-1">{PRESETS.MULTIPLE_ISSUES.description}</div>
           </button>
           <button
             onClick={() => loadPreset(PRESETS.SUSPICIOUS_VALUATION.json)}
-            className="text-left p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-colors"
+            className="text-left p-3.5 rounded-xl border border-amber-100 bg-amber-50/30 hover:bg-amber-50/70 transition-all duration-200 cursor-pointer"
           >
-            <div className="text-xs font-semibold text-amber-400">{PRESETS.SUSPICIOUS_VALUATION.name}</div>
-            <div className="text-[10px] text-slate-400 mt-1">{PRESETS.SUSPICIOUS_VALUATION.description}</div>
+            <div className="text-xs font-bold text-amber-800">{PRESETS.SUSPICIOUS_VALUATION.name}</div>
+            <div className="text-[10px] text-slate-500 mt-1">{PRESETS.SUSPICIOUS_VALUATION.description}</div>
           </button>
         </div>
       </div>
 
       <Show when={!!errorStr}>
-        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl">
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-sm font-medium">
           {errorStr}
         </div>
       </Show>
 
-      <form onSubmit={handleSubmit} className="glass-panel p-6 rounded-2xl space-y-6">
+      <form onSubmit={handleSubmit} className="glass-panel p-6 rounded-2xl space-y-6 border border-slate-100">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Raw JSON Payload</label>
+          <label className="block text-sm font-semibold text-slate-700 mb-2">Raw JSON Payload</label>
           <textarea
             value={jsonText}
             onChange={(e) => setJsonText(e.target.value)}
-            className="w-full h-96 bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 text-sm font-mono text-emerald-400 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-y"
+            className="w-full h-96 bg-slate-50/40 border border-slate-200 rounded-xl p-4 text-sm font-mono text-slate-800 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-y shadow-inner"
             spellCheck="false"
           />
         </div>
@@ -178,7 +178,7 @@ export default function IngestData() {
           <button 
             type="submit" 
             disabled={mutation.isPending}
-            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/25 flex items-center gap-2"
+            className="bg-primary hover:bg-primary-hover disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-200 shadow-sm border border-primary/10 flex items-center gap-2 cursor-pointer"
           >
             <Show when={mutation.isPending} fallback="Run Validation Engine">
               Processing Engine...

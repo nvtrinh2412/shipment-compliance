@@ -28,42 +28,42 @@ export default function ShipmentDetails() {
       >
         <div className="space-y-6 max-w-5xl mx-auto">
           <div>
-            <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4 text-sm">
+            <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-primary transition-colors mb-4 text-sm font-semibold">
               <ArrowLeft size={16} /> Back to Dashboard
             </Link>
             <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold text-slate-100">Shipment {data?.reference}</h2>
+              <h2 className="text-2xl font-bold text-slate-900">Shipment {data?.reference}</h2>
               <Show
                 when={isReady}
                 fallback={
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">ISSUES FOUND</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">ISSUES FOUND</span>
                 }
               >
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">READY FOR CUSTOMS</span>
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">READY FOR CUSTOMS</span>
               </Show>
             </div>
           </div>
 
           <Show when={!!data?.report}>
-            <div className="glass-panel p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20 space-y-4">
-              <h3 className="text-lg font-semibold text-white">Customs Compliance Readiness Report</h3>
-              <p className="text-slate-300 text-sm">{data?.report?.summary}</p>
+            <div className="glass-panel p-6 rounded-2xl bg-gradient-to-r from-primary/5 to-emerald-500/5 border border-primary/10 space-y-4">
+              <h3 className="text-lg font-bold text-slate-900">Customs Compliance Readiness Report</h3>
+              <p className="text-slate-600 text-sm leading-relaxed">{data?.report?.summary}</p>
               <div className="grid grid-cols-4 gap-4 text-center">
-                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Critical Blockers</div>
-                  <div className="text-lg font-bold text-rose-400 mt-1">{data?.report?.blockers?.length || 0}</div>
+                <div className="p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Critical Blockers</div>
+                  <div className="text-xl font-extrabold text-rose-600 mt-0.5">{data?.report?.blockers?.length || 0}</div>
                 </div>
-                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Warnings</div>
-                  <div className="text-lg font-bold text-amber-400 mt-1">{data?.report?.warnings?.length || 0}</div>
+                <div className="p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Warnings</div>
+                  <div className="text-xl font-extrabold text-amber-600 mt-0.5">{data?.report?.warnings?.length || 0}</div>
                 </div>
-                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Validation Issues</div>
-                  <div className="text-lg font-bold text-slate-300 mt-1">{data?.report?.issuesCount || 0}</div>
+                <div className="p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Validation Issues</div>
+                  <div className="text-xl font-extrabold text-slate-700 mt-0.5">{data?.report?.issuesCount || 0}</div>
                 </div>
-                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Human Review Required</div>
-                  <div className="text-lg font-bold text-blue-400 mt-1">{data?.report?.humanReviewRequired ? 'Yes' : 'No'}</div>
+                <div className="p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Human Review</div>
+                  <div className="text-xl font-extrabold text-primary mt-0.5">{data?.report?.humanReviewRequired ? 'Yes' : 'No'}</div>
                 </div>
               </div>
             </div>
@@ -72,53 +72,53 @@ export default function ShipmentDetails() {
           <div className="grid grid-cols-3 gap-6">
             <div className="col-span-2 space-y-6">
               {/* Tab Selector */}
-              <div className="flex gap-2 border-b border-slate-700/50 pb-px">
+              <div className="flex gap-2 border-b border-slate-200/80 pb-px">
                 <button
                   onClick={() => setActiveTab(DetailTab.ISSUES)}
-                  className={`pb-3 px-4 text-sm font-semibold transition-all border-b-2 -mb-px ${activeTab === DetailTab.ISSUES ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                  className={`pb-3 px-4 text-sm font-bold transition-all border-b-2 -mb-px cursor-pointer ${activeTab === DetailTab.ISSUES ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-350'}`}
                 >
                   Compliance Issues ({data?.issues?.length || 0})
                 </button>
                 <button
                   onClick={() => setActiveTab(DetailTab.RAW)}
-                  className={`pb-3 px-4 text-sm font-semibold transition-all border-b-2 -mb-px ${activeTab === DetailTab.RAW ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                  className={`pb-3 px-4 text-sm font-bold transition-all border-b-2 -mb-px cursor-pointer ${activeTab === DetailTab.RAW ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-350'}`}
                 >
                   Raw Ingested Data
                 </button>
                 <button
                   onClick={() => setActiveTab(DetailTab.AUDIT)}
-                  className={`pb-3 px-4 text-sm font-semibold transition-all border-b-2 -mb-px ${activeTab === DetailTab.AUDIT ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                  className={`pb-3 px-4 text-sm font-bold transition-all border-b-2 -mb-px cursor-pointer ${activeTab === DetailTab.AUDIT ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-350'}`}
                 >
                   Audit History ({data?.auditLogs?.length || 0})
                 </button>
               </div>
 
               <Show when={activeTab === DetailTab.ISSUES}>
-                <div className="glass-panel p-6 rounded-2xl">
-                  <h3 className="text-lg font-semibold mb-4 text-white">Active Compliance Violations</h3>
+                <div className="glass-panel p-6 rounded-2xl border border-slate-100">
+                  <h3 className="text-lg font-bold mb-4 text-slate-800">Active Compliance Violations</h3>
                   <Show
                     when={data?.issues?.length === 0}
                     fallback={
                       <div className="space-y-4">
                         {data?.issues?.map((issue: any) => (
-                          <div key={issue.id} className={`p-4 rounded-xl border ${issue.severity === Severity.CRITICAL ? 'bg-rose-500/10 border-rose-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
+                          <div key={issue.id} className={`p-4 rounded-xl border ${issue.severity === Severity.CRITICAL ? 'bg-rose-50 border-rose-100/80' : 'bg-amber-50 border-amber-100/80'}`}>
                             <div className="flex gap-3">
                               <div className="mt-0.5">
                                 <Show
                                   when={issue.severity === Severity.CRITICAL}
-                                  fallback={<AlertTriangle className="text-amber-400" size={20} />}
+                                  fallback={<AlertTriangle className="text-amber-500" size={18} />}
                                 >
-                                  <XCircle className="text-rose-400" size={20} />
+                                  <XCircle className="text-rose-500" size={18} />
                                 </Show>
                               </div>
                               <div>
-                                <h4 className={`font-semibold ${issue.severity === Severity.CRITICAL ? 'text-rose-300' : 'text-amber-300'}`}>
+                                <h4 className={`font-bold text-sm ${issue.severity === Severity.CRITICAL ? 'text-rose-900' : 'text-amber-900'}`}>
                                   {issue.issueType.replace(/_/g, ' ')}
                                 </h4>
-                                <p className="text-slate-300 text-sm mt-1">{issue.explanation}</p>
-                                <div className="mt-3 bg-slate-900/50 p-3 rounded-lg text-sm border border-slate-700/50">
-                                  <span className="text-slate-400 font-medium">Suggested Action: </span>
-                                  <span className="text-slate-200">{issue.suggestedAction}</span>
+                                <p className="text-slate-600 text-sm mt-1 leading-relaxed">{issue.explanation}</p>
+                                <div className="mt-3 bg-white/80 p-3.5 rounded-xl text-sm border border-slate-200/60 shadow-sm">
+                                  <span className="text-slate-500 font-bold">Suggested Action: </span>
+                                  <span className="text-slate-700 font-medium">{issue.suggestedAction}</span>
                                 </div>
                               </div>
                             </div>
@@ -127,8 +127,8 @@ export default function ShipmentDetails() {
                       </div>
                     }
                   >
-                    <div className="text-emerald-400 bg-emerald-500/10 p-4 rounded-xl flex items-center gap-3 border border-emerald-500/20">
-                      <Info size={20} />
+                    <div className="text-emerald-800 bg-emerald-50 p-4 rounded-xl flex items-center gap-3 border border-emerald-100 text-sm font-semibold">
+                      <Info size={18} className="text-emerald-600" />
                       No compliance issues detected. Safe to proceed.
                     </div>
                   </Show>
@@ -136,15 +136,15 @@ export default function ShipmentDetails() {
               </Show>
 
               <Show when={activeTab === DetailTab.RAW}>
-                <div className="glass-panel p-6 rounded-2xl space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-700/50 pb-3">
-                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                      <FileText size={20} className="text-blue-400" />
+                <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-100">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                      <FileText size={20} className="text-primary" />
                       Original Document OCR Extract
                     </h3>
                   </div>
-                  <Show when={!!ingestLog} fallback={<div className="text-slate-400 text-sm">No raw data found.</div>}>
-                    <pre className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 text-xs font-mono text-emerald-400 overflow-auto max-h-[500px]">
+                  <Show when={!!ingestLog} fallback={<div className="text-slate-500 text-sm italic">No raw data found.</div>}>
+                    <pre className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs font-mono text-slate-800 overflow-auto max-h-[500px] shadow-inner">
                       {JSON.stringify(ingestLog?.details, null, 2)}
                     </pre>
                   </Show>
@@ -152,23 +152,23 @@ export default function ShipmentDetails() {
               </Show>
 
               <Show when={activeTab === DetailTab.AUDIT}>
-                <div className="glass-panel p-6 rounded-2xl space-y-4">
-                  <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-slate-700/50 pb-3">
-                    <History size={20} className="text-blue-400" />
+                <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-100">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-3">
+                    <History size={20} className="text-primary" />
                     Audit Trail Timeline
                   </h3>
-                  <div className="space-y-6 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-700/50">
+                  <div className="space-y-6 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                     {data?.auditLogs?.map((log: any) => (
                       <div key={log.id} className="flex gap-4 relative">
-                        <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center z-10 text-[10px] text-blue-400 font-bold shadow-lg shadow-blue-500/5">
-                          Log
+                        <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center z-10 text-[9px] text-primary font-bold shadow-sm">
+                          LOG
                         </div>
-                        <div className="flex-1 bg-slate-900/30 border border-slate-800 p-4 rounded-xl">
+                        <div className="flex-1 bg-slate-50/40 border border-slate-100 hover:bg-slate-50/80 p-4 rounded-xl transition-all duration-200">
                           <div className="flex justify-between items-start">
-                            <span className="text-xs font-semibold text-slate-200">{log.action.replace(/_/g, ' ')}</span>
-                            <span className="text-[10px] text-slate-500">{new Date(log.timestamp).toLocaleString()}</span>
+                            <span className="text-xs font-bold text-slate-800">{log.action.replace(/_/g, ' ')}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString()}</span>
                           </div>
-                          <div className="text-xs text-slate-400 mt-1">Actor: <span className="text-slate-300">{log.actor}</span></div>
+                          <div className="text-xs text-slate-500 mt-1">Actor: <span className="text-slate-700 font-semibold">{log.actor}</span></div>
                         </div>
                       </div>
                     ))}
@@ -178,43 +178,43 @@ export default function ShipmentDetails() {
             </div>
 
             <div className="col-span-1 space-y-6">
-              <div className="glass-panel p-6 rounded-2xl">
-                <h3 className="text-lg font-semibold mb-4 text-white">Document Data</h3>
-                <dl className="space-y-3 text-sm">
-                  <div className="flex justify-between border-b border-slate-700/50 pb-2">
-                    <dt className="text-slate-400">Exporter</dt>
-                    <dd className="text-slate-200 font-medium text-right">
-                      <Show when={!!data?.exporter} fallback="-">{data?.exporter}</Show>
+              <div className="glass-panel p-6 rounded-2xl border border-slate-100">
+                <h3 className="text-lg font-bold mb-4 text-slate-800 border-b border-slate-100 pb-2">Document Data</h3>
+                <dl className="space-y-3.5 text-sm">
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <dt className="text-slate-500 font-medium">Exporter</dt>
+                    <dd className="text-slate-800 font-bold text-right">
+                      <Show when={!!data?.exporter} fallback={<span className="text-slate-400 italic font-normal">-</span>}>{data?.exporter}</Show>
                     </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-700/50 pb-2">
-                    <dt className="text-slate-400">Importer</dt>
-                    <dd className="text-slate-200 font-medium text-right">
-                      <Show when={!!data?.importer} fallback="-">{data?.importer}</Show>
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <dt className="text-slate-500 font-medium">Importer</dt>
+                    <dd className="text-slate-800 font-bold text-right">
+                      <Show when={!!data?.importer} fallback={<span className="text-slate-400 italic font-normal">-</span>}>{data?.importer}</Show>
                     </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-700/50 pb-2">
-                    <dt className="text-slate-400">HS Code</dt>
-                    <dd className="text-slate-200 font-medium text-right">
-                      <Show when={!!data?.hsCode} fallback="-">{data?.hsCode}</Show>
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <dt className="text-slate-500 font-medium">HS Code</dt>
+                    <dd className="text-slate-800 font-bold text-right">
+                      <Show when={!!data?.hsCode} fallback={<span className="text-slate-400 italic font-normal">-</span>}>{data?.hsCode}</Show>
                     </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-700/50 pb-2">
-                    <dt className="text-slate-400">Invoice</dt>
-                    <dd className="text-slate-200 font-medium text-right">
-                      <Show when={!!data?.invoiceValue} fallback="-">${data?.invoiceValue}</Show>
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <dt className="text-slate-500 font-medium">Invoice</dt>
+                    <dd className="text-slate-800 font-bold text-right">
+                      <Show when={!!data?.invoiceValue} fallback={<span className="text-slate-400 italic font-normal">-</span>}>${data?.invoiceValue?.toLocaleString()}</Show>
                     </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-700/50 pb-2">
-                    <dt className="text-slate-400">Origin</dt>
-                    <dd className="text-slate-200 font-medium text-right">
-                      <Show when={!!data?.countryCode} fallback="-">{data?.countryCode}</Show>
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <dt className="text-slate-500 font-medium">Origin</dt>
+                    <dd className="text-slate-800 font-bold text-right">
+                      <Show when={!!data?.countryCode} fallback={<span className="text-slate-400 italic font-normal">-</span>}>{data?.countryCode}</Show>
                     </dd>
                   </div>
-                  <div className="flex justify-between border-b border-slate-700/50 pb-2">
-                    <dt className="text-slate-400">Gross Wt</dt>
-                    <dd className="text-slate-200 font-medium text-right">
-                      <Show when={!!data?.grossWeightKg} fallback="-">{data?.grossWeightKg} kg</Show>
+                  <div className="flex justify-between border-b border-slate-50 pb-2">
+                    <dt className="text-slate-500 font-medium">Gross Wt</dt>
+                    <dd className="text-slate-800 font-bold text-right">
+                      <Show when={!!data?.grossWeightKg} fallback={<span className="text-slate-400 italic font-normal">-</span>}>{data?.grossWeightKg?.toLocaleString()} kg</Show>
                     </dd>
                   </div>
                 </dl>
