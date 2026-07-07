@@ -5,9 +5,22 @@ import { ShipmentsModule } from './shipments/shipments.module';
 import { AuditModule } from './audit/audit.module';
 import { ValidationModule } from './validation/validation.module';
 import { DbModule } from './db/db.module';
+import { BullModule } from '@nestjs/bullmq';
+import { config } from './config';
 
 @Module({
-  imports: [ShipmentsModule, AuditModule, ValidationModule, DbModule],
+  imports: [
+    BullModule.forRoot({
+      connection: {
+        host: config.redis.host,
+        port: config.redis.port,
+      },
+    }),
+    ShipmentsModule,
+    AuditModule,
+    ValidationModule,
+    DbModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

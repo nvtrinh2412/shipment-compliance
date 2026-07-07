@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { DbService } from '../db/db.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { AuditAction } from '@prisma/client';
 
 export enum AuditActor {
@@ -9,7 +10,7 @@ export enum AuditActor {
 
 @Injectable()
 export class AuditService {
-  constructor(private dbService: DbService) {}
+  constructor(@InjectQueue('audit-queue') private auditQueue: Queue) { }
 
   async logAction(
     shipmentId: string,
@@ -17,13 +18,12 @@ export class AuditService {
     actor: AuditActor | string,
     details: any,
   ) {
-    return this.dbService.auditLog.create({
-      data: {
-        shipmentId,
-        action,
-        actor,
-        details,
-      },
+    // Asynchronously push to the queue
+    await this.auditQueue.add('log', {
+      shipmentId,
+      action,
+      actor,
+      details,
     });
   }
 }
