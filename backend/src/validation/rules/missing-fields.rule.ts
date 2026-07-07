@@ -1,12 +1,13 @@
-import { ValidationRule, ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
+import { BaseValidationRule } from './base-validation.rule';
+import { ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
 import { Severity } from '@prisma/client';
 import { DbService } from '../../db/db.service';
 import { ValidationIssueType, ValidationRuleName, REQUIRED_SHIPMENT_FIELDS } from '../validation.constants';
 
-export class MissingFieldsRule implements ValidationRule {
+export class MissingFieldsRule extends BaseValidationRule {
   name = ValidationRuleName.MISSING_FIELDS_RULE;
 
-  async validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
+  protected async validateSelf(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
     const issues: ValidationIssueInput[] = [];
     const requiredFields = REQUIRED_SHIPMENT_FIELDS;
 
@@ -22,5 +23,10 @@ export class MissingFieldsRule implements ValidationRule {
       }
     }
     return issues.length > 0 ? issues : null;
+  }
+
+  protected shouldHalt(issues: ValidationIssueInput[] | null): boolean {
+    // If there are missing fields, halt the chain so subsequent checks are not run on incomplete data.
+    return issues !== null && issues.length > 0;
   }
 }

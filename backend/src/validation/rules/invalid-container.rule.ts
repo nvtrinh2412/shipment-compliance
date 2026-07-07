@@ -1,12 +1,13 @@
-import { ValidationRule, ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
+import { BaseValidationRule } from './base-validation.rule';
+import { ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
 import { Severity } from '@prisma/client';
 import { DbService } from '../../db/db.service';
 import { ValidationIssueType, ValidationRuleName } from '../validation.constants';
 
-export class InvalidContainerRule implements ValidationRule {
+export class InvalidContainerRule extends BaseValidationRule {
   name = ValidationRuleName.INVALID_CONTAINER_RULE;
 
-  async validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
+  protected async validateSelf(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
     if (!shipment.containerNumber) return null;
 
     // Standard ISO 6346: 3 letters (owner code), 1 letter (equipment category), 6 digits (serial), 1 digit (check)

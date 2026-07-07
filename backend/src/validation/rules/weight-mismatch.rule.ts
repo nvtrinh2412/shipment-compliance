@@ -1,12 +1,13 @@
-import { ValidationRule, ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
+import { BaseValidationRule } from './base-validation.rule';
+import { ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
 import { Severity } from '@prisma/client';
 import { DbService } from '../../db/db.service';
 import { ValidationIssueType, ValidationRuleName } from '../validation.constants';
 
-export class WeightMismatchRule implements ValidationRule {
+export class WeightMismatchRule extends BaseValidationRule {
   name = ValidationRuleName.WEIGHT_MISMATCH_RULE;
 
-  async validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
+  protected async validateSelf(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
     if (shipment.grossWeightKg === null || shipment.netWeightKg === null) return null;
 
     if (Number(shipment.grossWeightKg) < Number(shipment.netWeightKg)) {

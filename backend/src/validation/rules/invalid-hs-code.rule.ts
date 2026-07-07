@@ -1,12 +1,13 @@
-import { ValidationRule, ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
+import { BaseValidationRule } from './base-validation.rule';
+import { ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
 import { Severity } from '@prisma/client';
 import { DbService } from '../../db/db.service';
 import { ValidationIssueType, ValidationRuleName } from '../validation.constants';
 
-export class InvalidHSCodeRule implements ValidationRule {
+export class InvalidHSCodeRule extends BaseValidationRule {
   name = ValidationRuleName.INVALID_HS_CODE_RULE;
 
-  async validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
+  protected async validateSelf(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
     if (!shipment.hsCode) return null;
 
     // HS code standard is 6 digits, optionally up to 10 digits, sometimes formatted with dots e.g., 8413.70

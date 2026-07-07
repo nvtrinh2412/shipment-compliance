@@ -1,12 +1,13 @@
-import { ValidationRule, ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
+import { BaseValidationRule } from './base-validation.rule';
+import { ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
 import { Severity } from '@prisma/client';
 import { DbService } from '../../db/db.service';
 import { ValidationIssueType, ValidationRuleName } from '../validation.constants';
 
-export class DuplicateShipmentRule implements ValidationRule {
+export class DuplicateShipmentRule extends BaseValidationRule {
   name = ValidationRuleName.DUPLICATE_SHIPMENT_RULE;
 
-  async validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
+  protected async validateSelf(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
     if (!shipment.reference) return null;
 
     const duplicates = await dbService.shipment.count({

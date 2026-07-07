@@ -16,24 +16,26 @@ import { AuditService, AuditActor } from '../audit/audit.service';
 
 @Injectable()
 export class ValidationService {
-  private rules: ValidationRule[];
+  private validationChain: ValidationRule;
 
   constructor(
     private dbService: DbService,
     private auditService: AuditService,
   ) {
-    this.rules = [
-      new MissingFieldsRule(),
-      new InvalidHSCodeRule(),
-      new MissingCountryRule(),
-      new WeightMismatchRule(),
-      new MissingBillOfLadingRule(),
-      new InvalidContainerRule(),
-      new SuspiciousInvoiceRule(),
-      new WoodPackagingRule(),
-      new ArrivalDateRule(),
-      new DuplicateShipmentRule(),
-    ];
+    const missingFields = new MissingFieldsRule();
+    
+    missingFields
+      .setNext(new InvalidHSCodeRule())
+      .setNext(new MissingCountryRule())
+      .setNext(new WeightMismatchRule())
+      .setNext(new MissingBillOfLadingRule())
+      .setNext(new InvalidContainerRule())
+      .setNext(new SuspiciousInvoiceRule())
+      .setNext(new WoodPackagingRule())
+      .setNext(new ArrivalDateRule())
+      .setNext(new DuplicateShipmentRule());
+
+    this.validationChain = missingFields;
   }
 
   async validateShipment(shipmentId: string) {
@@ -51,11 +53,9 @@ export class ValidationService {
       where: { shipmentId },
     });
 
-    for (const rule of this.rules) {
-      const issues = await rule.validate(shipment, this.dbService);
-      if (issues && issues.length > 0) {
-        allIssues.push(...issues);
-      }
+    const issues = await this.validationChain.validate(shipment, this.dbService);
+    if (issues && issues.length > 0) {
+      allIssues.push(...issues);
     }
 
     // Log validation run event
@@ -63,7 +63,7 @@ export class ValidationService {
       shipmentId,
       AuditAction.VALIDATION_RUN,
       AuditActor.SYSTEM,
-      { rulesRun: this.rules.map(r => r.name), issuesFound: allIssues.length }
+      { rulesRun: this.validationChain.getRuleNames(), issuesFound: allIssues.length }
     );
 
     if (allIssues.length > 0) {

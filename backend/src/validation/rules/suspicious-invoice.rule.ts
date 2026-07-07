@@ -1,12 +1,13 @@
-import { ValidationRule, ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
+import { BaseValidationRule } from './base-validation.rule';
+import { ShipmentWithRelations, ValidationIssueInput } from './validation-rule.interface';
 import { Severity } from '@prisma/client';
 import { DbService } from '../../db/db.service';
 import { ValidationIssueType, ValidationRuleName, VALIDATION_THRESHOLDS } from '../validation.constants';
 
-export class SuspiciousInvoiceRule implements ValidationRule {
+export class SuspiciousInvoiceRule extends BaseValidationRule {
   name = ValidationRuleName.SUSPICIOUS_INVOICE_RULE;
 
-  async validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
+  protected async validateSelf(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null> {
     const issues: ValidationIssueInput[] = [];
 
     if (!shipment.invoiceValue) {

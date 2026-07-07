@@ -15,5 +15,7 @@ export interface ValidationIssueInput {
 
 export interface ValidationRule {
   name: string;
+  setNext(next: ValidationRule): ValidationRule;
   validate(shipment: ShipmentWithRelations, dbService: DbService): Promise<ValidationIssueInput[] | null>;
+  getRuleNames(): string[];
 }
