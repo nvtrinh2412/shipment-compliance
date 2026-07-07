@@ -56,7 +56,7 @@ describe('ValidationService', () => {
     (dbService as any).shipment.count.mockResolvedValue(0);
 
     const issues = await service.validateShipment('ship-123');
-    
+
     expect(issues.length).toBe(0);
     expect(dbService.shipment.update).toHaveBeenCalledWith({
       where: { id: 'ship-123' },
@@ -74,7 +74,7 @@ describe('ValidationService', () => {
     } as any);
 
     const issues = await service.validateShipment('ship-456');
-    
+
     expect(issues.length).toBeGreaterThan(0);
     expect(dbService.shipment.update).toHaveBeenCalledWith({
       where: { id: 'ship-456' },
