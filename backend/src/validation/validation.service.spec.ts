@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ValidationService } from './validation.service';
 import { DbService } from '../db/db.service';
 import { ShipmentStatus } from '@prisma/client';
+import { AuditService } from '../audit/audit.service';
 
 describe('ValidationService', () => {
   let service: ValidationService;
@@ -23,10 +24,15 @@ describe('ValidationService', () => {
       }
     };
 
+    const auditServiceMock = {
+      logAction: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ValidationService,
         { provide: DbService, useValue: dbServiceMock },
+        { provide: AuditService, useValue: auditServiceMock },
       ],
     }).compile();
 

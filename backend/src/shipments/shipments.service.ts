@@ -3,15 +3,13 @@ import { DbService } from '../db/db.service';
 import { ValidationService } from '../validation/validation.service';
 import { DocumentMapper } from './document-mapper';
 import { IngestShipmentDto } from './dto/ingest-shipment.dto';
-import { ShipmentStatus, AuditAction, Severity } from '@prisma/client';
-import { AuditService, AuditActor } from '../audit/audit.service';
+import { ShipmentStatus, Severity } from '@prisma/client';
 
 @Injectable()
 export class ShipmentsService {
   constructor(
     private readonly dbService: DbService,
     private readonly validationService: ValidationService,
-    private readonly auditService: AuditService,
   ) {}
 
   async ingestDocument(payload: IngestShipmentDto) {
@@ -46,20 +44,6 @@ export class ShipmentsService {
         status: ShipmentStatus.PENDING_REVIEW,
       }
     });
-
-    // Log shipment created and document data ingested events
-    await this.auditService.logAction(
-      shipment.id,
-      AuditAction.SHIPMENT_CREATED,
-      AuditActor.SYSTEM,
-      { reference: shipment.reference }
-    );
-    await this.auditService.logAction(
-      shipment.id,
-      AuditAction.DOCUMENT_INGESTED,
-      AuditActor.SYSTEM,
-      payload
-    );
 
     // 3. Run validation rules on the newly created shipment
     const issues = await this.validationService.validateShipment(shipment.id);
@@ -98,14 +82,6 @@ export class ShipmentsService {
       .map(i => i.suggestedAction)
       .filter(Boolean);
 
-    // Track "Readiness report generated" audit event
-    await this.auditService.logAction(
-      shipment.id,
-      AuditAction.READINESS_REPORT_GENERATED,
-      AuditActor.SYSTEM,
-      { viewTimestamp: new Date().toISOString() }
-    );
-
     return {
       ...shipment,
       report: {
@@ -133,14 +109,6 @@ export class ShipmentsService {
       where: { id },
       data,
     });
-
-    // Log field updated audit event
-    await this.auditService.logAction(
-      id,
-      AuditAction.FIELD_UPDATED,
-      AuditActor.USER,
-      { updatedFields: Object.keys(data) }
-    );
 
     // Re-run validation rules on update
     await this.validationService.validateShipment(id);
