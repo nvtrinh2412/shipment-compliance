@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileUp, Ship, Settings } from 'lucide-react';
+import { LayoutDashboard, FileUp } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function Layout() {

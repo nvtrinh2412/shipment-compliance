@@ -1,0 +1,18 @@
+export const OCR_MAPPING_KEYS = {
+  EXPORTER: ['exporter', 'exporterName', 'shipper', 'exporter_details', 'exporterDetails'],
+  IMPORTER: ['importer', 'importerName', 'consignee', 'importer_details', 'importerDetails'],
+  COMMERCIAL_INVOICE_NUMBER: ['invoice_number', 'invoiceNumber', 'invoiceNo', 'invoice_no'],
+  INVOICE_VALUE: ['invoice_value', 'invoiceValue', 'totalValue', 'amount', 'invoice_amount', 'invoiceAmount'],
+  CURRENCY_CODE: ['currency', 'currencyCode'],
+  GOODS_DESCRIPTION: ['goods_description', 'description', 'goodsDesc', 'goods_desc', 'goodsDesc'],
+  HS_CODE: ['hs_code', 'hsCode', 'tariffCode', 'harmonizedCode'],
+  COUNTRY_CODE: ['country_of_origin', 'countryOfOrigin', 'origin', 'coo', 'origin_country', 'originCountry'],
+  GROSS_WEIGHT: ['gross_weight_kg', 'grossWeight', 'grossWt', 'weight_gross'],
+  NET_WEIGHT: ['net_weight_kg', 'netWeight', 'netWt', 'weight_net'],
+  NUMBER_OF_PACKAGES: ['number_of_packages', 'packagesCount', 'pkgCount', 'qty', 'pkg_count'],
+  CONTAINER_NUMBER: ['container_number', 'containerNo', 'container', 'container_id', 'containerId'],
+  BILL_OF_LADING_NUMBER: ['bill_of_lading_number', 'blNumber', 'bol', 'bl_no', 'blNo'],
+  PACKAGING_TYPE: ['packaging_type', 'packaging', 'packageType', 'pkg_type', 'pkgType'],
+  ISPM_15: ['ispm15_certified', 'ispm15Certified', 'ispm15', 'woodTreatment'],
+  ARRIVAL_DATE: ['arrival_date', 'arrivalDate', 'eta'],
+};

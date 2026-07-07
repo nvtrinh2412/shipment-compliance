@@ -58,7 +58,7 @@ export class ShipmentsService {
       shipment.id,
       AuditAction.DOCUMENT_INGESTED,
       AuditActor.SYSTEM,
-      { rawKeys: Object.keys(payload) }
+      payload
     );
 
     // 3. Run validation rules on the newly created shipment
@@ -83,6 +83,9 @@ export class ShipmentsService {
         issues: true,
         country: true,
         currency: true,
+        auditLogs: {
+          orderBy: { timestamp: 'desc' }
+        }
       }
     });
 
