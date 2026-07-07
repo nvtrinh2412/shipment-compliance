@@ -3,6 +3,7 @@ import { fetchShipments } from '../api/apiClient';
 import { Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, Clock, ChevronRight } from 'lucide-react';
 import { Show } from '../components/Show';
+import { ShipmentStatus } from '../types/enums';
 
 export default function Dashboard() {
   const { data: shipments, isLoading, error } = useQuery({
@@ -84,10 +85,10 @@ export default function Dashboard() {
 function StatusBadge({ status }: { status: string }) {
   return (
     <Show 
-      when={status === 'READY'}
+      when={status === ShipmentStatus.READY}
       fallback={
         <Show 
-          when={status === 'ISSUES_FOUND'}
+          when={status === ShipmentStatus.ISSUES_FOUND}
           fallback={
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
               <Clock size={14} /> {status}
