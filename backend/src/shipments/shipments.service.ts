@@ -3,13 +3,15 @@ import { DbService } from '../db/db.service';
 import { ValidationService } from '../validation/validation.service';
 import { DocumentMapper } from './document-mapper';
 import { IngestShipmentDto } from './dto/ingest-shipment.dto';
-import { ShipmentStatus } from '@prisma/client';
+import { ShipmentStatus, AuditAction, Severity } from '@prisma/client';
+import { AuditService, AuditActor } from '../audit/audit.service';
 
 @Injectable()
 export class ShipmentsService {
   constructor(
     private readonly dbService: DbService,
     private readonly validationService: ValidationService,
+    private readonly auditService: AuditService,
   ) {}
 
   async ingestDocument(payload: IngestShipmentDto) {
@@ -28,10 +30,14 @@ export class ShipmentsService {
     if (!mappedData.hsCode) mappedData.hsCode = '';
     if (!mappedData.containerNumber) mappedData.containerNumber = '';
     if (!mappedData.billOfLadingNumber) mappedData.billOfLadingNumber = '';
-    if (!mappedData.currencyCode) mappedData.currencyCode = 'USD'; // default
+    if (!mappedData.packagingType) mappedData.packagingType = '';
+    if (!mappedData.countryCode) mappedData.countryCode = 'US';
+    if (!mappedData.currencyCode) mappedData.currencyCode = 'USD';
     if (!mappedData.invoiceValue) mappedData.invoiceValue = 0;
     if (!mappedData.grossWeightKg) mappedData.grossWeightKg = 0;
     if (!mappedData.netWeightKg) mappedData.netWeightKg = 0;
+    if (mappedData.numberOfPackages === undefined || mappedData.numberOfPackages === null) mappedData.numberOfPackages = 0;
+    if (!mappedData.arrivalDate) mappedData.arrivalDate = new Date();
     
     // 2. Insert mapped data into the database
     const shipment = await this.dbService.shipment.create({
@@ -40,6 +46,20 @@ export class ShipmentsService {
         status: ShipmentStatus.PENDING_REVIEW,
       }
     });
+
+    // Log shipment created and document data ingested events
+    await this.auditService.logAction(
+      shipment.id,
+      AuditAction.SHIPMENT_CREATED,
+      AuditActor.SYSTEM,
+      { reference: shipment.reference }
+    );
+    await this.auditService.logAction(
+      shipment.id,
+      AuditAction.DOCUMENT_INGESTED,
+      AuditActor.SYSTEM,
+      { rawKeys: Object.keys(payload) }
+    );
 
     // 3. Run validation rules on the newly created shipment
     const issues = await this.validationService.validateShipment(shipment.id);
@@ -68,7 +88,33 @@ export class ShipmentsService {
 
     if (!shipment) throw new NotFoundException('Shipment not found');
 
-    return shipment;
+    const issues = shipment.issues || [];
+    const blockers = issues.filter(i => i.severity === Severity.CRITICAL || i.severity === Severity.HIGH);
+    const warnings = issues.filter(i => i.severity === Severity.MEDIUM || i.severity === Severity.LOW);
+    const suggestedActions = issues
+      .map(i => i.suggestedAction)
+      .filter(Boolean);
+
+    // Track "Readiness report generated" audit event
+    await this.auditService.logAction(
+      shipment.id,
+      AuditAction.READINESS_REPORT_GENERATED,
+      AuditActor.SYSTEM,
+      { viewTimestamp: new Date().toISOString() }
+    );
+
+    return {
+      ...shipment,
+      report: {
+        summary: `Shipment from ${shipment.exporter || 'Unknown'} to ${shipment.importer || 'Unknown'} containing ${shipment.goodsDescription || 'no goods description'}.`,
+        status: shipment.status,
+        issuesCount: issues.length,
+        blockers,
+        warnings,
+        suggestedActions,
+        humanReviewRequired: shipment.status !== ShipmentStatus.READY,
+      }
+    };
   }
 
   async listShipments() {
@@ -77,5 +123,25 @@ export class ShipmentsService {
       take: 50,
       include: { issues: true }
     });
+  }
+
+  async updateShipment(id: string, data: any) {
+    const updated = await this.dbService.shipment.update({
+      where: { id },
+      data,
+    });
+
+    // Log field updated audit event
+    await this.auditService.logAction(
+      id,
+      AuditAction.FIELD_UPDATED,
+      AuditActor.USER,
+      { updatedFields: Object.keys(data) }
+    );
+
+    // Re-run validation rules on update
+    await this.validationService.validateShipment(id);
+
+    return this.getReadinessReport(id);
   }
 }

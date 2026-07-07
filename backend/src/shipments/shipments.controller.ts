@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, UsePipes } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UsePipes, Patch } from '@nestjs/common';
 import { ShipmentsService } from './shipments.service';
 import { IngestShipmentDto } from './dto/ingest-shipment.dto';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -28,5 +28,11 @@ export class ShipmentsController {
   @ApiOperation({ summary: 'List recent shipments' })
   async list() {
     return this.shipmentsService.listShipments();
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update shipment fields manually' })
+  async update(@Param('id') id: string, @Body() data: any) {
+    return this.shipmentsService.updateShipment(id, data);
   }
 }

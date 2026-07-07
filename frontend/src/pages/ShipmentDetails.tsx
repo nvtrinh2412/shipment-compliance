@@ -10,14 +10,15 @@ export default function ShipmentDetails() {
     queryKey: ['shipment', id],
     queryFn: () => fetchReadiness(id!)
   });
+  const isReady = data?.issues?.length === 0;
 
   return (
-    <Show 
-      when={!isLoading} 
+    <Show
+      when={!isLoading}
       fallback={<div className="text-center py-20 text-slate-400">Loading readiness report...</div>}
     >
-      <Show 
-        when={!!data} 
+      <Show
+        when={!!data}
         fallback={<div className="text-red-400">Not found</div>}
       >
         <div className="space-y-6 max-w-5xl mx-auto">
@@ -27,8 +28,8 @@ export default function ShipmentDetails() {
             </Link>
             <div className="flex items-center gap-4">
               <h2 className="text-2xl font-bold text-slate-100">Shipment {data?.reference}</h2>
-              <Show 
-                when={data?.status === 'READY'} 
+              <Show
+                when={isReady}
                 fallback={
                   <span className="px-3 py-1 rounded-full text-sm font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">ISSUES FOUND</span>
                 }
@@ -38,20 +39,45 @@ export default function ShipmentDetails() {
             </div>
           </div>
 
+          <Show when={!!data?.report}>
+            <div className="glass-panel p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20 space-y-4">
+              <h3 className="text-lg font-semibold text-white">Customs Compliance Readiness Report</h3>
+              <p className="text-slate-300 text-sm">{data?.report?.summary}</p>
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div className="text-xs text-slate-400">Critical Blockers</div>
+                  <div className="text-lg font-bold text-rose-400 mt-1">{data?.report?.blockers?.length || 0}</div>
+                </div>
+                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div className="text-xs text-slate-400">Warnings</div>
+                  <div className="text-lg font-bold text-amber-400 mt-1">{data?.report?.warnings?.length || 0}</div>
+                </div>
+                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div className="text-xs text-slate-400">Validation Issues</div>
+                  <div className="text-lg font-bold text-slate-300 mt-1">{data?.report?.issuesCount || 0}</div>
+                </div>
+                <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div className="text-xs text-slate-400">Human Review Required</div>
+                  <div className="text-lg font-bold text-blue-400 mt-1">{data?.report?.humanReviewRequired ? 'Yes' : 'No'}</div>
+                </div>
+              </div>
+            </div>
+          </Show>
+
           <div className="grid grid-cols-3 gap-6">
             <div className="col-span-2 space-y-6">
               <div className="glass-panel p-6 rounded-2xl">
                 <h3 className="text-lg font-semibold mb-4 text-white">Compliance Issues ({data?.issues?.length || 0})</h3>
-                <Show 
-                  when={data?.issues?.length === 0} 
+                <Show
+                  when={data?.issues?.length === 0}
                   fallback={
                     <div className="space-y-4">
                       {data?.issues?.map((issue: any) => (
                         <div key={issue.id} className={`p-4 rounded-xl border ${issue.severity === 'CRITICAL' ? 'bg-rose-500/10 border-rose-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
                           <div className="flex gap-3">
                             <div className="mt-0.5">
-                              <Show 
-                                when={issue.severity === 'CRITICAL'} 
+                              <Show
+                                when={issue.severity === 'CRITICAL'}
                                 fallback={<AlertTriangle className="text-amber-400" size={20} />}
                               >
                                 <XCircle className="text-rose-400" size={20} />

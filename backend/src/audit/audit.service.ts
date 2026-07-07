@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { AuditAction } from '@prisma/client';
 
+export enum AuditActor {
+  SYSTEM = 'System',
+  USER = 'User',
+}
+
 @Injectable()
 export class AuditService {
   constructor(private dbService: DbService) {}
@@ -9,7 +14,7 @@ export class AuditService {
   async logAction(
     shipmentId: string,
     action: AuditAction,
-    actor: string,
+    actor: AuditActor | string,
     details: any,
   ) {
     return this.dbService.auditLog.create({

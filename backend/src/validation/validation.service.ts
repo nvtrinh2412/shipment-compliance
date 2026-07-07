@@ -11,13 +11,17 @@ import { SuspiciousInvoiceRule } from './rules/suspicious-invoice.rule';
 import { WoodPackagingRule } from './rules/wood-packaging.rule';
 import { ArrivalDateRule } from './rules/arrival-date.rule';
 import { DuplicateShipmentRule } from './rules/duplicate-shipment.rule';
-import { Severity, ShipmentStatus } from '@prisma/client';
+import { Severity, ShipmentStatus, AuditAction } from '@prisma/client';
+import { AuditService, AuditActor } from '../audit/audit.service';
 
 @Injectable()
 export class ValidationService {
   private rules: ValidationRule[];
 
-  constructor(private dbService: DbService) {
+  constructor(
+    private dbService: DbService,
+    private auditService: AuditService,
+  ) {
     this.rules = [
       new MissingFieldsRule(),
       new InvalidHSCodeRule(),
@@ -54,10 +58,22 @@ export class ValidationService {
       }
     }
 
+    // Log validation run event
+    await this.auditService.logAction(
+      shipmentId,
+      AuditAction.VALIDATION_RUN,
+      AuditActor.SYSTEM,
+      { rulesRun: this.rules.map(r => r.name), issuesFound: allIssues.length }
+    );
+
     if (allIssues.length > 0) {
       await this.dbService.validationIssue.createMany({
         data: allIssues.map(i => ({
-          ...i,
+          issueType: i.issueType,
+          severity: i.severity,
+          fieldInvolved: i.fieldInvolved || '',
+          explanation: i.explanation || '',
+          suggestedAction: i.suggestedAction || '',
           shipmentId,
         })),
       });
@@ -66,11 +82,25 @@ export class ValidationService {
         where: { id: shipmentId },
         data: { status: ShipmentStatus.ISSUES_FOUND },
       });
+
+      await this.auditService.logAction(
+        shipmentId,
+        AuditAction.STATUS_CHANGED,
+        AuditActor.SYSTEM,
+        { from: shipment.status, to: ShipmentStatus.ISSUES_FOUND }
+      );
     } else {
       await this.dbService.shipment.update({
         where: { id: shipmentId },
         data: { status: ShipmentStatus.READY },
       });
+
+      await this.auditService.logAction(
+        shipmentId,
+        AuditAction.STATUS_CHANGED,
+        AuditActor.SYSTEM,
+        { from: shipment.status, to: ShipmentStatus.READY }
+      );
     }
 
     return allIssues;
