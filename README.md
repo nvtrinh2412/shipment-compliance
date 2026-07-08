@@ -4,6 +4,16 @@ A modern, high-performance logistics compliance system for validating shipment O
 
 ---
 
+## 💻 Technology Stack Rationale
+
+Choosing the right tools is about balancing developer velocity, maintainability, and architectural scalability. Here is why this stack was selected:
+
+- **NestJS:** Chosen for its robust, highly opinionated architecture. It provides out-of-the-box support for Dependency Injection, Aspect-Oriented Programming (via Interceptors and Guards), and strict TypeScript integration, making it ideal for scalable, enterprise-grade backend systems.
+- **React (with Vite):** The industry standard for declarative, component-based UIs. Vite was selected for its vastly superior hot-module replacement (HMR) speeds and optimized production builds, offering a world-class developer experience.
+- **PostgreSQL:** A highly reliable, ACID-compliant relational database. Given the strictly typed nature of logistics data (e.g., customs rules, shipment metadata), a relational schema with foreign key constraints ensures data integrity far better than a NoSQL approach.
+
+---
+
 ## 🏗️ System Architecture & Design Patterns
 
 The platform implements clean-code principles and robust software design patterns to achieve separation of concerns, high testability, and asynchronous scaling:
@@ -144,3 +154,22 @@ To run tests in watch mode:
 ```bash
 npm run test:watch
 ```
+
+---
+
+## 🤖 AI-Assisted Development
+
+As part of the development process, AI coding tools were utilized responsibly to accelerate delivery while maintaining strict engineering standards. Blindly generating code that cannot be explained is a serious red flag; therefore, all AI assistance was heavily curated.
+
+- **Tools Used:** AI coding assistants (Gemini).
+- **AI-Assisted Parts:** 
+  - Scaffolding the initial project structure and boilerplate.
+  - Planning the execution process phase by phase.
+  - Validating the implementation against the core requirements.
+  - Refactoring code segments for better readability and maintainability.
+- **Review and Correction Process:** 
+  - All AI-generated output was thoroughly reviewed, manually tested, and validated against the original requirements. Every line of code was vetted to ensure it aligned with the intended architectural vision and standard best practices.
+- **Disagreements & Rejections (Where AI was overridden):**
+  - **Coupled Logging:** The AI initially suggested tightly coupling the logging and tracing directly within the service layer. I disagreed and rejected this in favor of a decoupled approach using **Aspect-Oriented Programming (Interceptors)** and a **Message Queue (BullMQ/Redis)**. This ensures that HTTP endpoints remain fast and unaffected by database write peaks.
+  - **Validation Noise:** The AI's initial validation implementation ran all rules concurrently and returned every single error at once. This created an annoying and noisy developer/user experience (e.g., returning a "missing weight" error alongside an "invalid weight format" rule exception). I rejected this and refactored the engine into a **Chain of Responsibility**, where missing core structural fields halt the chain and prevent secondary, redundant rules from executing.
+  - **Direct PrismaClient Usage:** The AI attempted to use `PrismaClient` directly throughout the service functions. I refactored this to use a dedicated `DbService` injected via NestJS Dependency Injection. This drastically improves readability, enhances testability, and centralizes database connection management.
