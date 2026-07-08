@@ -83,17 +83,60 @@ graph TD
 ---
 
 ## 🌟 Key Features
-- **Extensible OCR Ingestion Mapper:** Dynamically scans various semi-structured JSON key variations (`exporter_details`, `invoice_no`, `weight_gross`, etc.) and maps them to a strictly-typed database schema.
-- **10 Core Validation Rules:**
-  - `MissingFieldsRule`: Checks for mandatory fields.
-  - `InvalidHSCodeRule`: Validates WCO digit format.
-  - `MissingCountryRule`: Validates ISO 3166-1 alpha-2 origin codes against ref data.
-  - `WeightMismatchRule`: Ensures gross weight >= net weight.
-  - `MissingBillOfLadingRule` & `InvalidContainerRule`: Validates ISO 6346 container numbers.
-  - `SuspiciousInvoiceRule`: Flags invoice values above $10M.
-  - `WoodPackagingRule`: Validates ISPM-15 certification if wooden packaging is detected.
-  - `ArrivalDateRule` & `DuplicateShipmentRule`: Restricts duplicate reference entries.
-- **Compliance Dashboard:** Sleek, modern interface using declarative state components (using the custom `<Show>` wrapper), complete with a tabbed viewer for raw data verification and a chronological timeline audit trail.
+
+The platform goes beyond simple CRUD operations, providing a resilient, enterprise-grade data processing pipeline:
+
+- **🛡️ Pluggable Validation Engine**
+  - A sophisticated rules engine implementing the **Chain of Responsibility** pattern.
+  - Processes over 10 complex domain-specific customs rules (e.g., ISO 6346 container validation, ISPM-15 wood packaging checks, WCO HS code validation, and invoice anomaly detection).
+  - Intelligently short-circuits execution on critical missing fields to eliminate redundant, noisy errors, while continuing on non-blocking checks to comprehensively aggregate all compliance issues in a single pass.
+
+- **🔀 Resilient OCR Data Ingestion Layer**
+  - Real-world OCR data is messy and unstructured. The ingestion mapping layer dynamically parses and normalizes semi-structured JSON payloads with unpredictable key variations (e.g., handling variants like `weight_gross`, `exporter_details`, etc.).
+  - Safely maps untrusted external payloads into a strictly typed, normalized relational database schema (Prisma/PostgreSQL).
+
+- **⚡ Event-Driven Audit Trail (AOP & Message Queues)**
+  - Built for high concurrency. Uses **Aspect-Oriented Programming (Interceptors)** to automatically hook into HTTP requests and emit lifecycle events (e.g., `DOCUMENT_INGESTED`).
+  - Events are fired asynchronously into a **BullMQ/Redis queue**, where background workers hydrate the database Audit Trail. This guarantees that frontend HTTP response times are never penalized by heavy database I/O during audit logging peaks.
+
+- **🎨 High-Performance React Dashboard**
+  - A sleek, polished React (Vite) interface built with TailwindCSS.
+  - Features custom declarative state components (e.g., the `<Show>` wrapper) to eliminate complex ternary rendering trees and ensure extremely clean component logic.
+  - Includes a specialized tabbed split-view that allows customs officers to compare the raw OCR JSON side-by-side against the engine's structured compliance report, alongside a full chronological event timeline.
+
+---
+
+## 🌍 Public Data Sources (Reference Data)
+
+As recommended for a strong submission, the validation engine leverages public reference data to validate incoming shipments:
+- **ISO 3166-1 (Countries) & ISO 4217 (Currencies):** A static seed file of ISO alpha-2 country codes and currencies is used to validate the `country_of_origin` and `currency` fields.
+- **WCO Harmonized System (HS Codes):** The rules engine validates the structural format of the WCO 6-digit prefix against expected numeric patterns.
+*Note: For this take-home, reference datasets are cached locally in the PostgreSQL database via the Prisma seed script (`prisma db seed`) rather than fetched live. This ensures fast, reliable testing without external network dependencies.*
+
+---
+
+## 🔌 API Design
+
+The backend exposes a clean RESTful interface. Full interactive documentation is available via **Swagger UI** at `http://localhost:3000/api` once the server is running.
+
+**Core Endpoints:**
+- `POST /api/shipments/ingest` - Ingests mock OCR data, maps it, runs validation, and generates a readiness report.
+- `GET /api/shipments/:id` - Retrieves a specific shipment and its current status.
+- `GET /api/shipments/:id/readiness-report` - Retrieves the compliance validation issues and blockers.
+- `GET /api/shipments/:id/audit-log` - Retrieves the chronological event timeline for the shipment.
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:3000/api/shipments/ingest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "shipment_reference": "SAF-IMP-2026-0007",
+    "exporter": "BlueRiver Manufacturing Ltd",
+    "hs_code": "8413.70",
+    "gross_weight_kg": 12750,
+    "net_weight_kg": 12100
+  }'
+```
 
 ---
 
@@ -154,6 +197,16 @@ To run tests in watch mode:
 ```bash
 npm run test:watch
 ```
+
+---
+
+## ⚖️ Assumptions & Trade-offs
+
+To deliver a focused, production-ready module within the requested 6-10 hour timebox, the following decisions were made:
+- **No Real OCR Integration:** Per the prompt, real OCR was deemed out of scope. The ingestion endpoint accepts simulated JSON OCR payloads.
+- **Database Choice (PostgreSQL):** While NoSQL is sometimes used for unstructured document ingestion, PostgreSQL was chosen because customs compliance relies heavily on strict relational integrity, structured reporting, and reference data.
+- **Sync Validation vs Async Auditing:** The core validation engine runs synchronously so the API can return immediate feedback (HTTP 201 with the readiness report). However, logging and audit trails were pushed to an asynchronous Redis queue to prevent database write locks and keep the API extremely fast.
+- **Authentication/Authorization:** Left out of scope to focus entirely on the core domain logic, robust data modeling, and the compliance engine.
 
 ---
 
