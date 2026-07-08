@@ -32,7 +32,7 @@ sequenceDiagram
     participant Worker as AuditProcessor
     participant DB as PostgreSQL
 
-    Officer->>Controller: POST /api/shipments/ingest
+    Officer->>Controller: POST /api/shipments/{id}/documents
     activate Controller
     Note over Controller: Zod validation run
     Controller->>Interceptor: Intercept Request
@@ -120,14 +120,17 @@ As recommended for a strong submission, the validation engine leverages public r
 The backend exposes a clean RESTful interface. Full interactive documentation is available via **Swagger UI** at `http://localhost:3000/api` once the server is running.
 
 **Core Endpoints:**
-- `POST /api/shipments/ingest` - Ingests mock OCR data, maps it, runs validation, and generates a readiness report.
+- `POST /api/shipments` - Creates a new draft shipment record.
 - `GET /api/shipments/:id` - Retrieves a specific shipment and its current status.
-- `GET /api/shipments/:id/readiness-report` - Retrieves the compliance validation issues and blockers.
+- `POST /api/shipments/:id/documents` - Ingests mock OCR data and maps it to the shipment.
+- `POST /api/shipments/:id/validate` - Runs the compliance validation engine.
+- `GET /api/shipments/:id/issues` - Retrieves active validation issues and warnings.
+- `GET /api/shipments/:id/readiness-report` - Retrieves the compliance readiness report.
 - `GET /api/shipments/:id/audit-log` - Retrieves the chronological event timeline for the shipment.
 
-**Example Request:**
+**Example Request (Data Ingestion):**
 ```bash
-curl -X POST http://localhost:3000/api/shipments/ingest \
+curl -X POST http://localhost:3000/api/shipments/123e4567-e89b-12d3-a456-426614174000/documents \
   -H "Content-Type: application/json" \
   -d '{
     "shipment_reference": "SAF-IMP-2026-0007",
