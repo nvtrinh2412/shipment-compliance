@@ -128,19 +128,6 @@ The backend exposes a clean RESTful interface. Full interactive documentation is
 - `GET /api/shipments/:id/readiness-report` - Retrieves the compliance readiness report.
 - `GET /api/shipments/:id/audit-log` - Retrieves the chronological event timeline for the shipment.
 
-**Example Request (Data Ingestion):**
-```bash
-curl -X POST http://localhost:3000/api/shipments/123e4567-e89b-12d3-a456-426614174000/documents \
-  -H "Content-Type: application/json" \
-  -d '{
-    "shipment_reference": "SAF-IMP-2026-0007",
-    "exporter": "BlueRiver Manufacturing Ltd",
-    "hs_code": "8413.70",
-    "gross_weight_kg": 12750,
-    "net_weight_kg": 12100
-  }'
-```
-
 ---
 
 ## 🛠️ Prerequisites
