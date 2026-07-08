@@ -11,7 +11,7 @@ export class ShipmentsService {
   constructor(
     private readonly dbService: DbService,
     private readonly validationService: ValidationService,
-  ) {}
+  ) { }
 
   async createShipment(dto: CreateShipmentDto) {
     const shipment = await this.dbService.shipment.create({
@@ -41,7 +41,6 @@ export class ShipmentsService {
   async getShipment(id: string) {
     const shipment = await this.dbService.shipment.findUnique({
       where: { id },
-      include: { country: true, currency: true }
     });
     if (!shipment) throw new NotFoundException('Shipment not found');
     return shipment;
@@ -52,7 +51,7 @@ export class ShipmentsService {
     if (!shipment) throw new NotFoundException('Shipment not found');
 
     const mappedData = DocumentMapper.mapToShipment(payload);
-    
+
     // Default mapped fields if missing to prevent SQL failures on non-nullable columns.
     if (!mappedData.exporter) mappedData.exporter = '';
     if (!mappedData.importer) mappedData.importer = '';
@@ -67,7 +66,7 @@ export class ShipmentsService {
     if (!mappedData.invoiceValue) mappedData.invoiceValue = 0;
     if (!mappedData.grossWeightKg) mappedData.grossWeightKg = 0;
     if (!mappedData.netWeightKg) mappedData.netWeightKg = 0;
-    if (mappedData.numberOfPackages === undefined || mappedData.numberOfPackages === null) mappedData.numberOfPackages = 0;
+    if (!mappedData.numberOfPackages || !mappedData.numberOfPackages) mappedData.numberOfPackages = 0;
     if (!mappedData.arrivalDate) mappedData.arrivalDate = new Date();
 
     const updated = await this.dbService.shipment.update({
@@ -112,7 +111,7 @@ export class ShipmentsService {
   async ingestDocument(payload: IngestShipmentDto) {
     const mappedData = DocumentMapper.mapToShipment(payload);
     mappedData.reference = payload.shipment_reference || `REF-${Date.now()}`;
-    
+
     if (!mappedData.exporter) mappedData.exporter = '';
     if (!mappedData.importer) mappedData.importer = '';
     if (!mappedData.commercialInvoiceNumber) mappedData.commercialInvoiceNumber = '';
@@ -128,7 +127,7 @@ export class ShipmentsService {
     if (!mappedData.netWeightKg) mappedData.netWeightKg = 0;
     if (mappedData.numberOfPackages === undefined || mappedData.numberOfPackages === null) mappedData.numberOfPackages = 0;
     if (!mappedData.arrivalDate) mappedData.arrivalDate = new Date();
-    
+
     const shipment = await this.dbService.shipment.create({
       data: {
         ...(mappedData as any),
@@ -137,7 +136,7 @@ export class ShipmentsService {
     });
 
     const issues = await this.validationService.validateShipment(shipment.id);
-    const updated = await this.dbService.shipment.findUnique({ where: { id: shipment.id }});
+    const updated = await this.dbService.shipment.findUnique({ where: { id: shipment.id } });
 
     return {
       shipmentId: shipment.id,
@@ -153,8 +152,6 @@ export class ShipmentsService {
       where: { id },
       include: {
         issues: true,
-        country: true,
-        currency: true,
         auditLogs: {
           orderBy: { timestamp: 'desc' }
         }

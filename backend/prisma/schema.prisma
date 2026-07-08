@@ -30,8 +30,6 @@ model Shipment {
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
 
-  currency                IsoCurrency       @relation(fields: [currencyCode], references: [code])
-  country                 IsoCountry        @relation(fields: [countryCode], references: [code])
   issues                  ValidationIssue[]
   auditLogs               AuditLog[]
 }
@@ -64,13 +62,11 @@ model AuditLog {
 model IsoCountry {
   code      String     @id
   name      String
-  shipments Shipment[]
 }
 
 model IsoCurrency {
   code      String     @id
   name      String
-  shipments Shipment[]
 }
 
 enum ShipmentStatus {

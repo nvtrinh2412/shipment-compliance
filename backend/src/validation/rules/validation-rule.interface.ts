@@ -2,7 +2,7 @@ import { DbService } from '../../db/db.service';
 import { Prisma, Severity } from '@prisma/client';
 
 export type ShipmentWithRelations = Prisma.ShipmentGetPayload<{
-  include: { country: true; currency: true; issues: true };
+  include: { issues: true };
 }>;
 
 export interface ValidationIssueInput {

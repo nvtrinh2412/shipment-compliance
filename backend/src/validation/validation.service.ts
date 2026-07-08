@@ -23,7 +23,7 @@ export class ValidationService {
     private auditService: AuditService,
   ) {
     const missingFields = new MissingFieldsRule();
-    
+
     missingFields
       .setNext(new InvalidHSCodeRule())
       .setNext(new MissingCountryRule())
@@ -41,7 +41,7 @@ export class ValidationService {
   async validateShipment(shipmentId: string) {
     const shipment = await this.dbService.shipment.findUnique({
       where: { id: shipmentId },
-      include: { country: true, currency: true, issues: true },
+      include: { issues: true },
     });
 
     if (!shipment) throw new Error('Shipment not found');

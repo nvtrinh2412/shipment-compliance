@@ -41,7 +41,7 @@ describe('ValidationService', () => {
   });
 
   it('should update status to READY if no issues found', async () => {
-    dbService.shipment.findUnique.mockResolvedValue({
+    (dbService.shipment.findUnique as jest.Mock).mockResolvedValue({
       id: 'ship-123',
       exporter: 'Apple',
       importer: 'Foxconn',
@@ -71,7 +71,7 @@ describe('ValidationService', () => {
   });
 
   it('should update status to ISSUES_FOUND if rule fails', async () => {
-    dbService.shipment.findUnique.mockResolvedValue({
+    (dbService.shipment.findUnique as jest.Mock).mockResolvedValue({
       id: 'ship-456',
       exporter: '', // Missing exporter triggers CRITICAL error
       importer: 'Foxconn',
