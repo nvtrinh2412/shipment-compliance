@@ -6,20 +6,20 @@ A modern, high-performance logistics compliance system for validating shipment O
 
 ## 💻 Technology Stack Rationale
 
-Choosing the right tools is about balancing developer velocity, maintainability, and architectural scalability. Here is why this stack was selected:
+The technology stack was chosen with a primary focus on architectural scalability, long-term maintainability, and rapid iteration. Here is the decision-making rationale:
 
-- **NestJS:** Chosen for its robust, highly opinionated architecture. It provides out-of-the-box support for Dependency Injection, Aspect-Oriented Programming (via Interceptors and Guards), and strict TypeScript integration, making it ideal for scalable, enterprise-grade backend systems.
-- **React (with Vite):** The industry standard for declarative, component-based UIs. Vite was selected for its vastly superior hot-module replacement (HMR) speeds and optimized production builds, offering a world-class developer experience.
-- **PostgreSQL:** A highly reliable, ACID-compliant relational database. Given the strictly typed nature of logistics data (e.g., customs rules, shipment metadata), a relational schema with foreign key constraints ensures data integrity far better than a NoSQL approach.
+- **NestJS (Backend):** Selected for its modular, highly opinionated architecture that enforces a clean separation of concerns. By leveraging its out-of-the-box Dependency Injection and Aspect-Oriented Programming (AOP), we can easily decouple heavy operations (like auditing or external integrations) from core business logic. This prevents code coupling and ensures the backend can seamlessly scale horizontally as domain complexity grows.
+- **React + Vite + Tailwind + Shadcn (Frontend):** React and Vite provide an extremely fast, component-based foundation with optimized production builds. To maximize developer velocity, **Tailwind CSS** and **Shadcn UI** were integrated because they make it incredibly easy and fast to build complex, accessible, and consistent user interfaces. This combination allows for rapid feature delivery and a scalable design system without the overhead of maintaining custom CSS files.
+- **PostgreSQL (Database):** Given the strictly typed, interrelated nature of logistics data (e.g., customs rules, shipment metadata), a relational schema was essential. PostgreSQL ensures data integrity through foreign key constraints and ACID compliance, which scales significantly better for complex transactional workloads and analytical queries than a NoSQL approach.
 
 ---
 
 ## 🏗️ System Architecture & Design Patterns
 
-The platform implements clean-code principles and robust software design patterns to achieve separation of concerns, high testability, and asynchronous scaling:
+When designing the core architecture, I focused heavily on preventing API bottlenecks and ensuring the system remains testable and scalable under load. Here are the key structural decisions:
 
 ### 1. Request Workflow & Event Decoupling (AOP + Producer-Consumer)
-We decouple HTTP handler executions from long-running database insertions and logging routines using **Aspect-Oriented Programming (AOP)** and **Message Queues**:
+One of the biggest risks in a compliance platform is the API choking on heavy audit-logging database writes. To solve this, I intentionally decoupled the HTTP request lifecycle from long-running logging routines using **Aspect-Oriented Programming (AOP)** and **Message Queues**:
 
 ```mermaid
 sequenceDiagram
@@ -63,7 +63,7 @@ sequenceDiagram
 ---
 
 ### 2. Validation Pipeline (Chain of Responsibility)
-Rather than executing all compliance checks in a standard flat array loop, the engine chains rules together. 
+I initially considered running all validation rules concurrently in a flat array, but realized this creates a terrible user experience—flooding customs officers with redundant, noisy errors (e.g., throwing an "invalid format" error when a field is simply missing). To solve this, I implemented a **Chain of Responsibility** pattern: 
 
 ```mermaid
 graph TD
@@ -77,8 +77,8 @@ graph TD
     H --> I[End: Return Combined Issues]
 ```
 
-* **Bypassing Downstream Noise:** The `MissingFieldsRule` acts as the head of the chain. If crucial database fields (like `exporter`, `grossWeightKg`, or `hsCode`) are completely missing, it halts the execution chain immediately. This prevents secondary rules (like format parsing or value threshold checking) from running on blank values, keeping the compliance report focused and clean.
-* **Aggregated Warnings:** If structural fields are complete, subsequent checks do *not* halt. For example, a shipment with both a format error in the HS code and a weight mismatch will report both issues simultaneously.
+* **Bypassing Downstream Noise:** I designed the `MissingFieldsRule` to act as a gatekeeper at the head of the chain. If crucial structural fields (like `exporter` or `hsCode`) are missing, it halts execution immediately. This deliberate short-circuiting keeps the compliance report focused and actionable instead of overwhelming the user.
+* **Aggregated Warnings:** Conversely, if the core fields exist, the engine shifts behavior and aggregates issues without halting. A shipment with both an HS code format error and a weight mismatch will report both issues simultaneously, giving officers a complete picture in one pass.
 
 ---
 
@@ -91,18 +91,18 @@ The platform goes beyond simple CRUD operations, providing a resilient, enterpri
   - Processes over 10 complex domain-specific customs rules (e.g., ISO 6346 container validation, ISPM-15 wood packaging checks, WCO HS code validation, and invoice anomaly detection).
   - Intelligently short-circuits execution on critical missing fields to eliminate redundant, noisy errors, while continuing on non-blocking checks to comprehensively aggregate all compliance issues in a single pass.
 
-- **🔀 Resilient OCR Data Ingestion Layer**
-  - Real-world OCR data is messy and unstructured. The ingestion mapping layer dynamically parses and normalizes semi-structured JSON payloads with unpredictable key variations (e.g., handling variants like `weight_gross`, `exporter_details`, etc.).
-  - Safely maps untrusted external payloads into a strictly typed, normalized relational database schema (Prisma/PostgreSQL).
+- **🔀 Defensive OCR Data Ingestion Layer**
+  - Knowing that real-world OCR data is messy and unpredictable, I built the ingestion layer to act as a defensive buffer. It dynamically parses and normalizes semi-structured JSON payloads, seamlessly handling edge-case key variations (e.g., `weight_gross` vs `grossWeightKg`).
+  - This ensures we safely map untrusted external payloads into our strictly typed relational database without crashing the system.
 
 - **⚡ Event-Driven Audit Trail (AOP & Message Queues)**
   - Built for high concurrency. Uses **Aspect-Oriented Programming (Interceptors)** to automatically hook into HTTP requests and emit lifecycle events (e.g., `DOCUMENT_INGESTED`).
   - Events are fired asynchronously into a **BullMQ/Redis queue**, where background workers hydrate the database Audit Trail. This guarantees that frontend HTTP response times are never penalized by heavy database I/O during audit logging peaks.
 
 - **🎨 High-Performance React Dashboard**
-  - A sleek, polished React (Vite) interface built with TailwindCSS.
-  - Features custom declarative state components (e.g., the `<Show>` wrapper) to eliminate complex ternary rendering trees and ensure extremely clean component logic.
-  - Includes a specialized tabbed split-view that allows customs officers to compare the raw OCR JSON side-by-side against the engine's structured compliance report, alongside a full chronological event timeline.
+  - I designed a sleek, polished React (Vite) interface built with TailwindCSS to optimize the end-user experience.
+  - To keep the frontend codebase maintainable, I introduced custom declarative state components (like a `<Show>` wrapper) that completely eliminate messy ternary rendering trees.
+  - Understanding that customs officers need context to make decisions, I built a specialized tabbed split-view. This allows them to instantly compare the raw OCR JSON side-by-side against the engine's structured compliance report and chronological audit timeline.
 
 ---
 
@@ -194,10 +194,10 @@ npm run test:watch
 
 To deliver a focused, production-ready module within the requested 6-10 hour timebox, the following decisions were made:
 - **No Real OCR Integration:** Per the prompt, real OCR was deemed out of scope. The ingestion endpoint accepts simulated JSON OCR payloads.
-- **Database Choice (PostgreSQL):** While NoSQL is sometimes used for unstructured document ingestion, PostgreSQL was chosen because customs compliance relies heavily on structured reporting and reference data.
-- **Standalone Reference Tables vs Hardcoded Lists:** We dropped direct database-level foreign key constraints between `Shipment` and `IsoCountry`/`IsoCurrency` to enable ingestion resilience (saving malformed draft inputs). However, these tables are **not redundant**. They serve as our master reference data. Validation rules query these tables dynamically (e.g. querying `IsoCountry` to see if country code `'XX'` exists). Storing this in the database rather than hardcoding arrays in the codebase keeps reference lists maintainable and allows metadata updates (such as country risk profiles or tax rates) without redeploying the backend.
-- **Sync Validation vs Async Auditing:** The core validation engine runs synchronously so the API can return immediate feedback (HTTP 201 with the readiness report). However, logging and audit trails were pushed to an asynchronous Redis queue to prevent database write locks and keep the API extremely fast.
-- **Authentication/Authorization:** Left out of scope to focus entirely on the core domain logic, robust data modeling, and the compliance engine.
+- **Database Choice (PostgreSQL over NoSQL):** While I could have used MongoDB to blindly dump unstructured OCR JSON, I actively chose PostgreSQL. Customs compliance fundamentally relies on structured reporting, relational references, and strict data integrity—areas where Postgres excels.
+- **Ingestion Resilience vs. Strict Foreign Keys:** I made a deliberate trade-off to drop direct database-level foreign key constraints between the `Shipment` and `IsoCountry`/`IsoCurrency` reference tables. If an OCR payload contains a typo (like country `'XX'`), a strict foreign key would reject the entire document. By querying these reference tables at the validation layer instead of the schema layer, the system gracefully saves the malformed draft so an officer can correct it in the UI.
+- **Sync Validation vs Async Auditing:** I engineered the core validation rules to run synchronously so the API instantly returns the readiness report to the user. However, I pushed all audit logging to an asynchronous Redis queue. This prevents heavy database write locks from slowing down the primary user workflow.
+- **Authentication/Authorization:** I left this out of scope to focus entirely on engineering a robust, high-quality data processing pipeline and compliance engine within the timebox.
 
 ---
 
